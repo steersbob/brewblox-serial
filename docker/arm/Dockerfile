@@ -18,8 +18,8 @@ ENV SERVICE_INFO=${service_info}
 COPY --from=base /wheeley /wheeley
 COPY ./config /app/config
 
-RUN pip3 install --no-index --find-links=/wheeley brewblox-devcon-spark \
+RUN pip3 install --no-index --find-links=/wheeley brewblox-serial \
     && rm -rf /wheeley \
     && pip3 freeze
 
-ENTRYPOINT ["python3", "-m", "brewblox_devcon_spark"]
+ENTRYPOINT ["python3", "-m", "brewblox_serial"]

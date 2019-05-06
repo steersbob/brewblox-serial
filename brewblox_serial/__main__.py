@@ -6,18 +6,12 @@ import logging
 
 from brewblox_service import brewblox_logger, events, scheduler, service
 
-from brewblox_devcon_spark import (broadcaster, commander, commander_sim,
-                                   communication, couchdb_client, datastore,
-                                   device, http_client, seeder, status)
-from brewblox_devcon_spark.api import (alias_api, codec_api, debug_api,
-                                       error_response, object_api, remote_api,
-                                       sse_api, system_api)
-from brewblox_devcon_spark.codec import codec
+from brewblox_serial import communication, error_response, status, writer
 
 LOGGER = brewblox_logger(__name__)
 
 
-def create_parser(default_name='spark'):
+def create_parser(default_name='serial'):
     parser = service.create_parser(default_name=default_name)
 
     # Device options
@@ -88,33 +82,13 @@ def main():
         return
 
     status.setup(app)
-    http_client.setup(app)
 
-    if config['simulation']:
-        commander_sim.setup(app)
-    else:
-        communication.setup(app)
-        commander.setup(app)
-
+    communication.setup(app)
     scheduler.setup(app)
     events.setup(app)
 
-    couchdb_client.setup(app)
-    datastore.setup(app)
-    codec.setup(app)
-    device.setup(app)
-    broadcaster.setup(app)
-
     error_response.setup(app)
-    debug_api.setup(app)
-    alias_api.setup(app)
-    object_api.setup(app)
-    system_api.setup(app)
-    remote_api.setup(app)
-    codec_api.setup(app)
-    sse_api.setup(app)
-
-    seeder.setup(app)
+    writer.setup(app)
 
     service.furnish(app)
     service.run(app)

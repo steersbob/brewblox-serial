@@ -16,7 +16,7 @@ services:
     image: brewblox/firmware-simulator:develop
 
   spark:
-    image: brewblox/brewblox-devcon-spark:develop
+    image: brewblox/brewblox-serial:develop
     privileged: true
     depends_on:
       - eventbus

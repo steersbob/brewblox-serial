@@ -1,11 +1,11 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='brewblox-devcon-spark',
+    name='brewblox-serial',
     use_scm_version={'local_scheme': lambda v: ''},
     description='Communication with Spark controllers',
     long_description=open('README.md').read(),
-    url='https://github.com/BrewBlox/brewblox-devcon-spark',
+    url='https://github.com/BrewBlox/brewblox-serial',
     author='BrewPi',
     author_email='Development@brewpi.com',
     classifiers=[

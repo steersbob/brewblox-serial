@@ -8,7 +8,7 @@ import traceback
 from aiohttp import web, web_exceptions
 from brewblox_service import brewblox_logger, strex
 
-from brewblox_devcon_spark.exceptions import BrewBloxException
+from brewblox_serial.exceptions import BrewBloxException
 
 LOGGER = brewblox_logger(__name__)
 

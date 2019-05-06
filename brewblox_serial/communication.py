@@ -5,7 +5,6 @@ Implements a protocol and a conduit for async serial communication.
 import asyncio
 import re
 import warnings
-from asyncio import TimeoutError
 from collections import namedtuple
 from concurrent.futures import CancelledError
 from contextlib import suppress
@@ -18,7 +17,7 @@ from brewblox_service import brewblox_logger, features, scheduler
 from serial.tools import list_ports
 from serial_asyncio import SerialTransport
 
-from brewblox_devcon_spark import exceptions, http_client, status
+from brewblox_serial import exceptions, status
 
 LOGGER = brewblox_logger(__name__)
 DNS_DISCOVER_TIMEOUT_S = 20
@@ -102,26 +101,6 @@ async def discover_serial(app: web.Application, factory: ProtocolFactory_) -> Aw
         return None
 
 
-async def discover_tcp(app: web.Application, factory: ProtocolFactory_) -> Awaitable[ConnectionResult_]:
-    config = app['config']
-    id = config['device_id']
-    mdns_host = config['mdns_host']
-    mdns_port = config['mdns_port']
-    try:
-        session = http_client.get_client(app).session
-        retv = await asyncio.wait_for(
-            session.post(f'http://{mdns_host}:{mdns_port}/mdns/discover', json={'id': id}),
-            DNS_DISCOVER_TIMEOUT_S
-        )
-        resp = await retv.json()
-        host, port = resp['host'], resp['port']
-        transport, protocol = await create_connection(factory, host, port)
-        return f'{host}:{port}', transport, protocol
-
-    except TimeoutError:  # pragma: no cover
-        return None
-
-
 async def connect_discovered(app: web.Application,
                              factory: ProtocolFactory_
                              ) -> Awaitable[ConnectionResult_]:
@@ -133,12 +112,6 @@ async def connect_discovered(app: web.Application,
             result = await discover_serial(app, factory)
             if result:
                 LOGGER.info(f'discovered usb {result[0]}')
-                return result
-
-        if discovery_type in ['all', 'wifi']:
-            result = await discover_tcp(app, factory)
-            if result:
-                LOGGER.info(f'discovered wifi {result[0]}')
                 return result
 
         await asyncio.sleep(DISCOVER_INTERVAL_S)
@@ -184,12 +157,7 @@ class SparkConduit(features.ServiceFeature):
                 on_data=partial(self._do_callbacks, self._data_callbacks)
             )
 
-        if app['config']['device_serial']:
-            connect_func = partial(connect_serial, self.app, factory)
-        elif app['config']['device_host']:
-            connect_func = partial(connect_tcp, self.app, factory)
-        else:
-            connect_func = partial(connect_discovered, self.app, factory)
+        connect_func = partial(connect_serial, self.app, factory)
 
         self._connection_task = await scheduler.create_task(
             self.app,
